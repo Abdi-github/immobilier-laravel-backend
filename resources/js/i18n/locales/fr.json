@@ -1,0 +1,41 @@
+{
+    "nav": {
+        "dashboard": "Tableau de bord",
+        "properties": "Propriétés",
+        "agencies": "Agences",
+        "users": "Utilisateurs",
+        "leads": "Prospects",
+        "categories": "Catégories",
+        "amenities": "Équipements",
+        "locations": "Emplacements",
+        "translations": "Traductions",
+        "roles": "Rôles",
+        "settings": "Paramètres"
+    },
+    "common": {
+        "save": "Enregistrer",
+        "cancel": "Annuler",
+        "delete": "Supprimer",
+        "edit": "Modifier",
+        "create": "Créer",
+        "search": "Rechercher",
+        "filter": "Filtrer",
+        "export": "Exporter",
+        "actions": "Actions",
+        "status": "Statut",
+        "yes": "Oui",
+        "no": "Non",
+        "confirm": "Confirmer",
+        "back": "Retour",
+        "loading": "Chargement...",
+        "noResults": "Aucun résultat trouvé"
+    },
+    "auth": {
+        "login": "Connexion",
+        "logout": "Déconnexion",
+        "email": "E-mail",
+        "password": "Mot de passe",
+        "rememberMe": "Se souvenir de moi",
+        "signIn": "Se connecter"
+    }
+}

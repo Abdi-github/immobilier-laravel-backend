@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'roles_listed' => 'Roles retrieved successfully',
+    'role_retrieved' => 'Role retrieved successfully',
+    'role_created' => 'Role created successfully',
+    'role_updated' => 'Role updated successfully',
+    'role_deleted' => 'Role deleted successfully',
+    'role_not_found' => 'Role not found',
+    'role_exists' => 'Role with name ":name" already exists',
+    'role_update_failed' => 'Failed to update role',
+    'system_role_protected' => 'Cannot modify name or system status of system roles',
+    'system_role_delete' => 'Cannot delete system roles',
+    'invalid_permission_ids' => 'One or more permission IDs are invalid',
+    'permissions_assigned' => 'Permissions assigned successfully',
+    'permissions_revoked' => 'Permissions revoked successfully',
+    'permissions_set' => 'Permissions set successfully',
+    'permission_assign_failed' => 'Failed to assign permissions',
+    'permission_revoke_failed' => 'Failed to revoke permissions',
+    'permission_set_failed' => 'Failed to set permissions',
+    'role_permissions_listed' => 'Role permissions retrieved successfully',
+    'permissions_listed' => 'Permissions retrieved successfully',
+    'permission_retrieved' => 'Permission retrieved successfully',
+    'permission_created' => 'Permission created successfully',
+    'permission_updated' => 'Permission updated successfully',
+    'permission_deactivated' => 'Permission deactivated successfully',
+    'permission_deleted' => 'Permission permanently deleted',
+    'permission_not_found' => 'Permission not found',
+    'permission_exists' => 'Permission with this name already exists',
+    'permission_name_format' => 'Permission name must follow format: resource:action',
+    'permission_update_failed' => 'Failed to update permission',
+    'permission_delete_failed' => 'Failed to delete permission',
+    'active_permissions' => 'Active permissions retrieved successfully',
+    'resources_listed' => 'Resources retrieved successfully',
+];
