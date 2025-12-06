@@ -1,0 +1,198 @@
+services:
+  # ── Laravel API ──
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: immobilier-api
+    ports:
+      - "4003:8000"
+    volumes:
+      - .:/var/www/html
+      - vendor:/var/www/html/vendor
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=immobilier
+      - DB_USERNAME=immobilier
+      - DB_PASSWORD=immobilier_secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=redis
+      - MAIL_MAILER=smtp
+      - MAIL_HOST=mailpit
+      - MAIL_PORT=1025
+      - MAIL_FROM_ADDRESS=noreply@immobilier.ch
+      - MAIL_FROM_NAME=Immobilier.ch
+      - SCOUT_DRIVER=meilisearch
+      - MEILISEARCH_HOST=http://meilisearch:7700
+      - MEILISEARCH_KEY=masterKey
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      meilisearch:
+        condition: service_started
+      mailpit:
+        condition: service_started
+    networks:
+      - immobilier
+    restart: unless-stopped
+
+  # ── Laravel Horizon (Queue Worker) ──
+  horizon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: immobilier-horizon
+    command: php artisan horizon
+    volumes:
+      - .:/var/www/html
+      - vendor:/var/www/html/vendor
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=immobilier
+      - DB_USERNAME=immobilier
+      - DB_PASSWORD=immobilier_secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - MAIL_MAILER=smtp
+      - MAIL_HOST=mailpit
+      - MAIL_PORT=1025
+      - SCOUT_DRIVER=meilisearch
+      - MEILISEARCH_HOST=http://meilisearch:7700
+      - MEILISEARCH_KEY=masterKey
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - immobilier
+    restart: unless-stopped
+
+  # ── PostgreSQL 16 ──
+  postgres:
+    image: postgres:16-alpine
+    container_name: immobilier-postgres
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: immobilier
+      POSTGRES_USER: immobilier
+      POSTGRES_PASSWORD: immobilier_secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U immobilier -d immobilier"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - immobilier
+    restart: unless-stopped
+
+  # ── Redis 7 ──
+  redis:
+    image: redis:7-alpine
+    container_name: immobilier-redis
+    ports:
+      - "6382:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - immobilier
+    restart: unless-stopped
+
+  # ── Meilisearch ──
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    container_name: immobilier-meilisearch
+    ports:
+      - "7701:7700"
+    environment:
+      MEILI_MASTER_KEY: masterKey
+      MEILI_ENV: development
+      MEILI_NO_ANALYTICS: "true"
+    volumes:
+      - meilisearch_data:/meili_data
+    networks:
+      - immobilier
+    restart: unless-stopped
+
+  # ── LibreTranslate ──
+  libretranslate:
+    image: libretranslate/libretranslate:v1.6.1
+    container_name: immobilier-libretranslate
+    ports:
+      - "5050:5000"
+    environment:
+      LT_LOAD_ONLY: en,fr,de,it
+      LT_DISABLE_WEB_UI: "false"
+    volumes:
+      - libretranslate_data:/home/libretranslate/.local
+    networks:
+      - immobilier
+    restart: unless-stopped
+
+  # ── Mailpit (Email Testing) ──
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: immobilier-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - immobilier
+    restart: unless-stopped
+
+  # ── pgAdmin ──
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: immobilier-pgadmin
+    ports:
+      - "8084:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@immobilier.ch
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - immobilier
+    restart: unless-stopped
+
+volumes:
+  vendor:
+  postgres_data:
+  redis_data:
+  meilisearch_data:
+  libretranslate_data:
+  pgadmin_data:
+
+networks:
+  immobilier:
+    driver: bridge

@@ -1,0 +1,149 @@
+services:
+  # ── Nginx Reverse Proxy ──
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: immobilier-nginx
+    ports:
+      - "${APP_PORT:-80}:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - app_public:/var/www/html/public:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - immobilier
+    restart: unless-stopped
+
+  # ── Laravel API (PHP-FPM) ──
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: immobilier-api
+    expose:
+      - "9000"
+    volumes:
+      - app_public:/var/www/html/public
+      - app_storage:/var/www/html/storage
+    env_file:
+      - .env.production
+    healthcheck:
+      test: ["CMD-SHELL", "php -r 'exit(0);' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - immobilier
+    restart: unless-stopped
+
+  # ── Laravel Horizon (Queue Worker) ──
+  horizon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: immobilier-horizon
+    command: php artisan horizon
+    volumes:
+      - app_storage:/var/www/html/storage
+    env_file:
+      - .env.production
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - immobilier
+    restart: unless-stopped
+
+  # ── Scheduler (cron) ──
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: immobilier-scheduler
+    command: sh -c "while true; do php artisan schedule:run --no-interaction >> /dev/null 2>&1; sleep 60; done"
+    volumes:
+      - app_storage:/var/www/html/storage
+    env_file:
+      - .env.production
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - immobilier
+    restart: unless-stopped
+
+  # ── PostgreSQL 16 ──
+  postgres:
+    image: postgres:16-alpine
+    container_name: immobilier-postgres
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-immobilier}
+      POSTGRES_USER: ${DB_USERNAME:-immobilier}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-immobilier} -d ${DB_DATABASE:-immobilier}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - immobilier
+    restart: unless-stopped
+
+  # ── Redis 7 ──
+  redis:
+    image: redis:7-alpine
+    container_name: immobilier-redis
+    expose:
+      - "6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - immobilier
+    restart: unless-stopped
+
+  # ── Meilisearch ──
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    container_name: immobilier-meilisearch
+    expose:
+      - "7700"
+    environment:
+      MEILI_MASTER_KEY: ${MEILISEARCH_KEY}
+      MEILI_ENV: production
+      MEILI_NO_ANALYTICS: "true"
+    volumes:
+      - meilisearch_data:/meili_data
+    networks:
+      - immobilier
+    restart: unless-stopped
+
+volumes:
+  app_public:
+  app_storage:
+  postgres_data:
+  redis_data:
+  meilisearch_data:
+
+networks:
+  immobilier:
+    driver: bridge
