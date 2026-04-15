@@ -17,7 +17,12 @@ storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*
 bootstrap/cache/*
-tests/
+tests/Browser/
+tests/Feature/
+tests/Unit/
+tests/Traits/
+tests/Pest.php
+tests/TestCase.php
 phpunit.xml
 .phpunit.result.cache
 .editorconfig

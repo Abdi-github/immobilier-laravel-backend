@@ -13,6 +13,13 @@ services:
         condition: service_healthy
     networks:
       - immobilier
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.immobilier-laravel.rule=Host(`immobilier.swiftapp.ch`)"
+      - "traefik.http.routers.immobilier-laravel.entrypoints=websecure"
+      - "traefik.http.routers.immobilier-laravel.tls.certresolver=letsencrypt"
+      - "traefik.http.services.immobilier-laravel.loadbalancer.server.port=80"
     restart: unless-stopped
 
   # ── Laravel API (PHP-FPM) ──
@@ -147,3 +154,5 @@ volumes:
 networks:
   immobilier:
     driver: bridge
+  traefik:
+    external: true
