@@ -134,7 +134,8 @@ services:
       - "6379"
     labels:
       - "sablier.enable=true"
-      - "sablier.group=immobilier" --appendonly yes --requirepass ${REDIS_PASSWORD}
+      - "sablier.group=immobilier"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
     healthcheck:
