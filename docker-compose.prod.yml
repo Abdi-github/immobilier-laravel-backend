@@ -24,6 +24,10 @@ services:
       - "traefik.http.services.immobilier-laravel.loadbalancer.server.port=80"
       - "sablier.enable=true"
       - "sablier.group=immobilier"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
     restart: unless-stopped
 
   # ── Laravel API (PHP-FPM) ──
@@ -56,6 +60,10 @@ services:
         condition: service_healthy
     networks:
       - immobilier
+    deploy:
+      resources:
+        limits:
+          memory: 192M
     restart: unless-stopped
 
   # ── Laravel Horizon (Queue Worker) ──
@@ -78,6 +86,10 @@ services:
         condition: service_healthy
     networks:
       - immobilier
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     restart: unless-stopped
 
   # ── Scheduler (cron) ──
@@ -100,6 +112,10 @@ services:
         condition: service_healthy
     networks:
       - immobilier
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     restart: unless-stopped
 
   # ── PostgreSQL 16 ──
@@ -124,6 +140,10 @@ services:
       retries: 5
     networks:
       - immobilier
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     restart: unless-stopped
 
   # ── Redis 7 ──
@@ -145,6 +165,10 @@ services:
       retries: 5
     networks:
       - immobilier
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     restart: unless-stopped
 
   # ── Meilisearch ──
@@ -164,6 +188,10 @@ services:
       - meilisearch_data:/meili_data
     networks:
       - immobilier
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     restart: unless-stopped
 
 volumes:
